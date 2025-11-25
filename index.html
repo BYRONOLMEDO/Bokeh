@@ -1,1064 +1,1090 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <title>Suite CSV — Chart.js + JS (GitHub Pages)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CSV Dashboard — Gráfico + Estadística + Stack + Split</title>
 
-  <!-- Librerías: PapaParse (CSV) + Chart.js (gráficos) -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- PapaParse para CSV -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <style>
-    :root{
-      --bg:#020617;
-      --bg-soft:#020617;
-      --card:#020617;
-      --card-soft:#020617;
-      --muted:#94a3b8;
-      --border:#1e293b;
-      --text:#e5e7eb;
-      --accent:#22c55e;
-      --accent-soft:rgba(34,197,94,0.13);
-      --danger:#ef4444;
-      --danger-soft:rgba(239,68,68,0.13);
-      --shadow-soft:0 18px 35px rgba(15,23,42,0.85);
-      --shadow-subtle:0 10px 30px rgba(15,23,42,0.7);
-    }
-
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:
-        radial-gradient(circle at 0 0, #0f172a 0, #020617 55%),
-        radial-gradient(circle at 100% 0, #111827 0, #020617 55%),
-        radial-gradient(circle at 0 100%, #020617 0, #000 55%);
-      color:var(--text);
-    }
-
-    .wrap{
-      max-width:1200px;
-      margin:0 auto;
-      padding:16px;
-    }
-
-    h1{
-      font-size:1.3rem;
-      letter-spacing:0.03em;
-      text-transform:uppercase;
-      color:#e5e7eb;
-      margin-bottom:4px;
-      text-align:center;
-    }
-    .subtitle{
-      text-align:center;
-      font-size:0.85rem;
-      color:var(--muted);
-      margin-bottom:16px;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:1.1fr 1.1fr;
-      gap:12px;
-      align-items:flex-start;
-    }
-
-    .card{
-      background:radial-gradient(circle at 0 0, #020617 0, #020617 60%);
-      border-radius:16px;
-      border:1px solid rgba(148,163,184,0.18);
-      box-shadow:var(--shadow-soft);
-      padding:12px 12px 10px;
-      position:relative;
-      overflow:hidden;
-    }
-    .card::before{
-      content:"";
-      position:absolute;
-      inset:-120px;
-      background:
-        radial-gradient(circle at 0 0, rgba(56,189,248,0.08), transparent 50%),
-        radial-gradient(circle at 100% 0, rgba(34,197,94,0.08), transparent 50%);
-      opacity:0.75;
-      pointer-events:none;
-      z-index:-1;
-    }
-
-    .card h2{
-      font-size:0.78rem;
-      letter-spacing:0.12em;
-      text-transform:uppercase;
-      color:var(--muted);
-      margin-bottom:6px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-    .badge{
-      font-size:0.72rem;
-      padding:2px 7px;
-      border-radius:999px;
-      background:rgba(15,23,42,0.95);
-      border:1px solid rgba(148,163,184,0.45);
-      color:#e5e7eb;
-    }
-    .card-section{
-      font-size:0.8rem;
-      color:var(--muted);
-      margin-bottom:8px;
-    }
-
-    label{
-      font-size:0.75rem;
-      color:var(--muted);
-      display:block;
-      margin-bottom:3px;
-    }
-
-    select,input[type="text"],input[type="number"]{
-      width:100%;
-      padding:5px 7px;
-      border-radius:8px;
-      border:1px solid rgba(148,163,184,0.3);
-      background:rgba(15,23,42,0.9);
-      color:var(--text);
-      font-size:0.78rem;
-      outline:none;
-    }
-
-    button{
-      padding:6px 10px;
-      border-radius:999px;
-      border:none;
-      font-size:0.78rem;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      gap:5px;
-      white-space:nowrap;
-    }
-    .btn-primary{
-      background:linear-gradient(135deg,#22c55e,#22d3ee);
-      color:#0f172a;
-      box-shadow:0 8px 20px rgba(34,197,94,0.45);
-    }
-    .btn-ghost{
-      background:rgba(15,23,42,0.85);
-      color:var(--muted);
-      border:1px solid rgba(148,163,184,0.35);
-    }
-    .btn-link{
-      background:transparent;
-      color:var(--muted);
-      padding:0;
-      border-radius:0;
-      box-shadow:none;
-    }
-
-    .row{
-      display:flex;
-      gap:8px;
-      margin-bottom:8px;
-      flex-wrap:wrap;
-      align-items:flex-end;
-    }
-    .col{
-      flex:1;
-      min-width:0;
-    }
-    .col-2{
-      flex:2;
-    }
-    .col-fixed{
-      flex:0 0 auto;
-    }
-
-    .hint{
-      font-size:0.72rem;
-      color:var(--muted);
-      margin-top:2px;
-    }
-
-    .pill{
-      padding:4px 9px;
-      border-radius:999px;
-      font-size:0.72rem;
-      border:1px solid rgba(148,163,184,0.35);
-      background:rgba(15,23,42,0.95);
-      color:var(--text);
-      cursor:pointer;
-    }
-
-    .alert{
-      border-radius:10px;
-      padding:6px 8px;
-      font-size:0.76rem;
-      margin-top:4px;
-    }
-    .alert-info{
-      background:rgba(56,189,248,0.06);
-      border:1px solid rgba(56,189,248,0.4);
-      color:#e0f2fe;
-    }
-    .alert-error{
-      background:var(--danger-soft);
-      border:1px solid var(--danger);
-      color:#fee2e2;
-    }
-    .alert-ok{
-      background:var(--accent-soft);
-      border:1px solid var(--accent);
-      color:#dcfce7;
-    }
-
-    .log{
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      font-size:0.72rem;
-      white-space:pre-wrap;
-      max-height:130px;
-      overflow:auto;
-      background:rgba(15,23,42,0.85);
-      border-radius:10px;
-      padding:7px;
-      border:1px solid rgba(148,163,184,0.35);
-    }
-
-    #dfPreview{
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      font-size:0.75rem;
-      max-height:260px;
-      overflow:auto;
-      margin-top:8px;
-      border-radius:10px;
-      border:1px solid rgba(148,163,184,0.35);
-      background:rgba(15,23,42,0.85);
-    }
-    #dfPreview table{
-      border-collapse:collapse;
-      width:100%;
-      min-width:400px;
-    }
-    #dfPreview th,#dfPreview td{
-      border:1px solid rgba(51,65,85,0.7);
-      padding:3px 5px;
-      text-align:left;
-    }
-    #dfPreview th{
-      background:rgba(15,23,42,0.95);
-      position:sticky;
-      top:0;
-      z-index:1;
-    }
-    #dfPreview tbody tr:nth-child(even){
-      background:rgba(15,23,42,0.85);
-    }
-
-    #chartCanvas{
-      width:100% !important;
-      height:380px !important;
-    }
-
-    .chart-container{
-      position:relative;
-      width:100%;
-      height:380px;
-      margin-top:8px;
-    }
-
-    .code{
-      font-family:ui-monospace,Menlo,Consolas,monospace;
-      font-size:0.75rem;
-      background:rgba(15,23,42,0.85);
-      padding:4px 6px;
-      border-radius:6px;
-      border:1px solid rgba(148,163,184,0.4);
-    }
-
-    .tag{
-      font-size:0.7rem;
-      padding:2px 6px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,0.45);
-      color:var(--muted);
-    }
-
-    .footer-note{
-      text-align:center;
-      font-size:0.7rem;
-      color:var(--muted);
-      margin-top:8px;
-    }
-
-    @media(max-width:1024px){
-      .grid{
-        grid-template-columns:1fr;
-      }
-      .card{
-        box-shadow:var(--shadow-subtle);
-      }
-    }
-  </style>
+<style>
+  :root{
+    --bg:#020617;
+    --card:#020617;
+    --card2:#020617;
+    --border:#1e293b;
+    --muted:#94a3b8;
+    --text:#e5e7eb;
+    --accent:#22d3ee;
+    --accent-soft:rgba(34,211,238,0.15);
+    --danger:#ef4444;
+    --ok:#22c55e;
+    --warning:#facc15;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:radial-gradient(circle at top,#1e293b 0,#020617 45%,#000 100%);
+    color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  .container{
+    max-width:1200px;
+    margin:0 auto;
+    padding:16px;
+  }
+  h1{
+    font-size:1.6rem;
+    margin:0 0 8px 0;
+  }
+  h2{
+    font-size:1.25rem;
+    margin:16px 0 8px 0;
+  }
+  h3{
+    font-size:1.05rem;
+    margin:12px 0 6px 0;
+  }
+  .card{
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:12px 14px;
+    margin:10px 0;
+    background:
+      radial-gradient(circle at top left,rgba(34,211,238,0.1),transparent 55%),
+      radial-gradient(circle at bottom right,rgba(56,189,248,0.1),transparent 55%),
+      var(--card);
+    box-shadow:0 18px 45px rgba(15,23,42,0.75);
+  }
+  .subcard{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px 10px;
+    margin-top:8px;
+    background:rgba(15,23,42,0.85);
+  }
+  label{
+    font-size:0.86rem;
+    color:var(--muted);
+    display:inline-block;
+    margin-bottom:2px;
+  }
+  select, input[type="text"], input[type="file"]{
+    background:#020617;
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:5px 7px;
+    font-size:0.9rem;
+    outline:none;
+  }
+  select:focus, input[type="text"]:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 1px var(--accent-soft);
+  }
+  select[multiple]{
+    min-width:160px;
+  }
+  button{
+    border:none;
+    border-radius:999px;
+    padding:6px 12px;
+    font-size:0.9rem;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-right:6px;
+    margin-top:4px;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,#22d3ee,#0ea5e9);
+    color:#0f172a;
+  }
+  .btn-secondary{
+    background:#1e293b;
+    color:var(--text);
+  }
+  .btn-success{
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    color:#022c22;
+  }
+  .btn-warning{
+    background:linear-gradient(135deg,#facc15,#eab308);
+    color:#422006;
+  }
+  .btn-info{
+    background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+    color:#02131f;
+  }
+  .tag{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:999px;
+    font-size:0.75rem;
+    background:rgba(15,23,42,0.9);
+    border:1px solid rgba(148,163,184,0.5);
+    color:var(--muted);
+    margin-right:4px;
+  }
+  table{
+    border-collapse:collapse;
+    width:100%;
+    font-size:0.8rem;
+  }
+  th,td{
+    border:1px solid #1f2937;
+    padding:4px 6px;
+    text-align:left;
+  }
+  th{
+    background:rgba(15,23,42,0.95);
+    font-weight:600;
+  }
+  tr:nth-child(even) td{
+    background:rgba(15,23,42,0.75);
+  }
+  tr:nth-child(odd) td{
+    background:rgba(15,23,42,0.95);
+  }
+  .muted{color:var(--muted); font-size:0.8rem;}
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:3px 9px;
+    border-radius:999px;
+    background:rgba(15,23,42,0.9);
+    border:1px solid rgba(148,163,184,0.5);
+    font-size:0.75rem;
+    color:var(--muted);
+  }
+  .row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .row > div{
+    flex:1 1 200px;
+    min-width:0;
+  }
+  .small{font-size:0.78rem;}
+  canvas{
+    background:rgba(15,23,42,0.9);
+    border-radius:10px;
+    border:1px solid rgba(15,23,42,0.8);
+  }
+  /* 🔹 Nuevo: limitar ancho del gráfico, similar a Colab */
+  .chart-wrapper{
+    max-width:900px;      /* ancho máximo del gráfico */
+    margin:0 auto;        /* centrado */
+    height:260px;         /* alto visible del gráfico */
+  }
+  .chart-wrapper canvas{
+    width:100% !important;
+    height:100% !important;
+  }
+</style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Suite CSV — Chart.js + JS</h1>
-  <div class="subtitle">
-    Carga un <span class="code">.csv</span>, genera estadísticas, gráficos, stack y split sobre columnas numéricas/categóricas.
+<div class="container">
+  <h1>📊 CSV Dashboard — HTML + JavaScript</h1>
+  <div class="muted">
+    Carga un <b>CSV</b>, explora el gráfico, estadísticas (modo JMP), <b>STACK</b> y <b>SPLIT</b>.
   </div>
 
-  <!-- ================= PRIMERA FILA: CARGA / STATS ================= -->
-  <div class="grid" style="margin-bottom:10px;">
-    <!-- CARGA CSV -->
-    <div class="card">
-      <h2>
-        1. Cargar CSV
-        <span class="badge">Base</span>
-      </h2>
-      <div class="card-section">
-        Sube un archivo <span class="code">.csv</span> (separado por coma) para crear <span class="code">df_work</span>.
+  <!-- 1) CARGA CSV -->
+  <div class="card">
+    <h2>1️⃣ Cargar CSV</h2>
+    <div class="row">
+      <div>
+        <label for="file-input">Archivo .csv</label><br>
+        <input type="file" id="file-input" accept=".csv" />
       </div>
-
-      <div class="row">
-        <div class="col">
-          <label for="csvInput">Archivo CSV</label>
-          <input type="file" id="csvInput" accept=".csv,text/csv" />
-          <div class="hint">Se usará la primera fila como encabezados.</div>
-        </div>
-        <div class="col-fixed">
-          <button class="btn-primary" id="btnLoadCsv">
-            🚀 Cargar en df_work
-          </button>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <div id="loadStatus" class="hint">Aún no se ha cargado ningún CSV.</div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <label>Columnas detectadas</label>
-          <div id="columnsList" class="hint">(vacío)</div>
-        </div>
+      <div>
+        <div class="pill" id="dataset-pill">Sin archivo</div>
+        <div id="dedupe-info" class="small"></div>
       </div>
     </div>
-
-    <!-- STATS -->
-    <div class="card">
-      <h2>
-        2. Stats rápidas
-        <span class="badge">Describe</span>
-      </h2>
-      <div class="card-section">
-        Calcula conteos, media, min, max de una columna numérica (o mezcla numérica/categórica simple).
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <label for="statsCol">Columna para stats</label>
-          <select id="statsCol"></select>
-        </div>
-        <div class="col-fixed">
-          <button class="btn-primary" id="btnStats">📊 Calcular</button>
-        </div>
-      </div>
-
-      <div id="statsResult" class="log"></div>
+    <div class="subcard">
+      <h3>Vista rápida — primeras 10 filas</h3>
+      <div id="preview-table"></div>
     </div>
   </div>
 
-  <!-- =============== SEGUNDO BLOQUE: CHART A TODO EL ANCHO =============== -->
-  <div class="card" style="margin-bottom:10px;">
-    <h2>
-      3. Chart (X vs múltiples Y)
-      <span class="badge">Chart.js</span>
-    </h2>
-    <div class="card-section">
-      Genera un gráfico (línea/barras) con una columna <span class="code">X</span> y varias columnas <span class="code">Y</span> simultáneas.
-    </div>
-
+  <!-- 2) GRÁFICO -->
+  <div class="card">
+    <h2>2️⃣ Gráfico (líneas / barras)</h2>
     <div class="row">
-      <div class="col">
-        <label for="chartX">Columna X</label>
-        <select id="chartX"></select>
+      <div>
+        <label for="chart-x">Columna X</label><br>
+        <select id="chart-x"></select>
       </div>
-      <div class="col">
-        <label for="chartY">Columnas Y (una o varias)</label>
-        <select id="chartY" multiple size="5"></select>
-        <div class="hint">Puedes seleccionar más de una columna (Ctrl/Cmd + clic).</div>
+      <div>
+        <label for="chart-y">Columnas Y (puedes elegir varias)</label><br>
+        <select id="chart-y" multiple size="6"></select>
       </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <label for="chartType">Tipo de gráfico</label>
-        <select id="chartType">
-          <option value="line">Línea</option>
+      <div>
+        <label for="chart-type">Tipo</label><br>
+        <select id="chart-type">
+          <option value="line">Líneas</option>
           <option value="bar">Barras</option>
         </select>
       </div>
-      <div class="col-fixed">
-        <button class="btn-primary" id="btnChart">📈 Dibujar</button>
-      </div>
     </div>
-
-    <div class="chart-container">
-      <canvas id="chartCanvas"></canvas>
-    </div>
-  </div>
-
-  <!-- ================= TERCERA FILA: STACK / SPLIT / EXPORT ================= -->
-  <div class="grid">
-    <!-- STACK -->
-    <div class="card">
-      <h2>
-        4. Stack (reordenar columnas y crear índices)
-        <span class="badge">Transform</span>
-      </h2>
-      <div class="card-section">
-        Crea nuevas columnas de índice y reordena según tus necesidades sin perder filas.
+    <div class="subcard">
+      <div class="chart-wrapper">
+        <canvas id="chart-canvas"></canvas>
       </div>
-
-      <div class="row">
-        <div class="col">
-          <label for="stackIndexCols">Columnas índice (elige una o varias)</label>
-          <select id="stackIndexCols" multiple size="6"></select>
-          <div class="hint">Se crearán columnas índice <span class="code">idx_1, idx_2…</span> con estas columnas.</div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <label for="stackOrderCols">Nuevo orden de columnas (elige una o varias)</label>
-          <select id="stackOrderCols" multiple size="6"></select>
-          <div class="hint">Las seleccionadas irán primero en ese orden; las demás se agregan al final.</div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-fixed">
-          <button class="btn-primary" id="btnStack">🧱 Hacer Stack</button>
-        </div>
-        <div class="col">
-          <span class="hint">Crea <span class="code">df_work</span> modificado (no destruye el archivo original cargado).</span>
-        </div>
-      </div>
-
-      <div id="stackStatus" class="log"></div>
-    </div>
-
-    <!-- SPLIT -->
-    <div class="card">
-      <h2>
-        5. Split por valores
-        <span class="badge">Grupos</span>
-      </h2>
-      <div class="card-section">
-        Informa y permite filtrar <span class="code">df_work</span> por un valor de columna base. Luego puedes exportar el subset.
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <label for="splitBaseCol">Columna base (categoría / grupo)</label>
-          <select id="splitBaseCol"></select>
-          <div class="hint">Se detectarán valores únicos en esta columna.</div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <label for="splitViewCol">Columna para vista rápida (opcional)</label>
-          <select id="splitViewCol"></select>
-          <div class="hint">Si se selecciona, la vista previa mostrará solo base + vista. Si no, se muestran todas.</div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-fixed">
-          <button class="btn-primary" id="btnSplit">✂️ Hacer Split</button>
-        </div>
-        <div class="col">
-          <span class="hint">Luego puedes hacer <b>Exportar CSV</b> sobre el subset filtrado.</span>
-        </div>
-      </div>
-
-      <div id="splitStatus" class="log"></div>
-      <div id="splitPreview" class="log" style="max-height:260px;"></div>
-    </div>
-
-    <!-- EXPORT / RESET -->
-    <div class="card">
-      <h2>
-        6. Exportar / Reset
-        <span class="badge">Salida</span>
-      </h2>
-      <div class="card-section">
-        Descarga el <span class="code">df_work</span> actual como CSV o vuelve al estado inicial (sin datos).
-      </div>
-
-      <div class="row">
-        <div class="col-fixed">
-          <button class="btn-primary" id="btnExportCsv">💾 Exportar df_work.csv</button>
-        </div>
-        <div class="col-fixed">
-          <button class="btn-ghost" id="btnReset">🧹 Reset Base</button>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <div id="exportStatus" class="hint">df_work actual: (vacío)</div>
-        </div>
-      </div>
-
-      <div id="dfPreview"></div>
+      <div id="chart-msg" class="muted" style="margin-top:4px;"></div>
     </div>
   </div>
 
-  <div class="footer-note">
-    df_work vive solo en memoria del navegador. No se suben datos a ningún servidor.
+  <!-- 3) ESTADÍSTICA DE UNA COLUMNA -->
+  <div class="card">
+    <h2>3️⃣ Estadística básica — una columna (modo JMP)</h2>
+    <div class="row">
+      <div>
+        <label for="stats-column">Columna</label><br>
+        <select id="stats-column"></select>
+      </div>
+      <div class="muted" style="align-self:flex-end;">
+        Elige la columna para ver N, percentiles, CV%, skewness, kurtosis, etc.
+      </div>
+    </div>
+    <div class="subcard">
+      <div id="stats-table"></div>
+    </div>
+  </div>
+
+  <!-- 4) STACK -->
+  <div class="card">
+    <h2>4️⃣ STACK — Apilar columnas (reemplaza df_work)</h2>
+    <div class="row">
+      <div>
+        <label for="stack-idvars">id_vars (quedan fijas)</label><br>
+        <select id="stack-idvars" multiple size="6"></select>
+      </div>
+      <div>
+        <label for="stack-valuevars">value_vars (se apilan)</label><br>
+        <select id="stack-valuevars" multiple size="6"></select>
+      </div>
+      <div>
+        <label for="stack-varname">var_name</label><br>
+        <input type="text" id="stack-varname" value="variable"><br><br>
+        <label for="stack-valuename">value_name</label><br>
+        <input type="text" id="stack-valuename" value="value"><br><br>
+        <label><input type="checkbox" id="stack-dropna"> Eliminar filas con value NaN</label><br>
+        <button class="btn-primary" id="stack-btn">Generar STACK</button>
+      </div>
+    </div>
+    <div class="subcard">
+      <div id="stack-result"></div>
+    </div>
+  </div>
+
+  <!-- 5) SPLIT -->
+  <div class="card">
+    <h2>5️⃣ SPLIT — por valores (solo informa)</h2>
+    <div class="row">
+      <div>
+        <label for="split-base">Col. BASE</label><br>
+        <select id="split-base"></select>
+      </div>
+      <div>
+        <label for="split-show">Col. muestra (opcional)</label><br>
+        <select id="split-show"></select>
+      </div>
+      <div style="align-self:flex-end%;">
+        <button class="btn-secondary" id="split-btn">Hacer Split</button>
+      </div>
+    </div>
+    <div class="subcard">
+      <div id="split-status"></div>
+      <div style="margin-top:6px;" id="split-result"></div>
+    </div>
+  </div>
+
+  <!-- 6) EXPORTAR / VOLVER AL ORIGINAL -->
+  <div class="card">
+    <h2>6️⃣ Exportar / Volver al CSV original</h2>
+    <div class="row">
+      <div>
+        <label for="export-name">Nombre archivo CSV final</label><br>
+        <input type="text" id="export-name" value="resultado_final.csv" style="min-width:220px;">
+      </div>
+      <div style="align-self:flex-end;">
+        <button class="btn-success" id="export-btn">⬇️ Exportar CSV</button>
+        <button class="btn-warning" id="reset-btn">🔁 Volver al original</button>
+      </div>
+    </div>
+    <div class="subcard">
+      <div id="final-info" class="muted"></div>
+    </div>
   </div>
 </div>
 
 <script>
-  let dfWork = [];
-  let columns = [];
-  let originalDf = [];
+/* ======================= Estado global ======================= */
+let dfOriginal = null;   // {columns:[], rows:[{...},...]}
+let dfWork     = null;
+let baseFileName = "archivo";
+let currentChart = null;
 
-  let chartInstance = null;
+/* ======================= Utilidades generales ======================= */
+function deepCopy(obj){
+  return JSON.parse(JSON.stringify(obj));
+}
 
-  function showMessage(type, html){
-    const loadStatus = document.getElementById("loadStatus");
-    const exportStatus = document.getElementById("exportStatus");
+function sanitizeFilename(s){
+  return String(s || "archivo").trim().replace(/\s+/g,"_").replace(/[^A-Za-z0-9_\-.]/g,"").slice(0,80) || "archivo";
+}
 
-    const box = document.createElement("div");
-    box.className = "alert " + (
-      type==="error" ? "alert-error" :
-      type==="ok"    ? "alert-ok" :
-                       "alert-info"
-    );
-    box.innerHTML = html;
+function escapeHTML(str){
+  return str.replace(/[&<>"']/g,function(m){
+    return ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    })[m];
+  });
+}
 
-    loadStatus.innerHTML = "";
-    exportStatus.innerHTML = "";
-    loadStatus.appendChild(box.cloneNode(true));
-    exportStatus.appendChild(box);
+function renderTable(data, maxRows=10){
+  if(!data || !data.columns || !data.columns.length){
+    return '<div class="muted">Sin datos para mostrar.</div>';
+  }
+  const cols = data.columns;
+  const rows = data.rows || [];
+  let html = "<div class='small'><table><thead><tr>";
+  cols.forEach(c => { html += "<th>"+escapeHTML(String(c))+"</th>"; });
+  html += "</tr></thead><tbody>";
+  const n = Math.min(maxRows, rows.length);
+  for(let i=0;i<n;i++){
+    html += "<tr>";
+    const row = rows[i];
+    cols.forEach(c => {
+      let v = row[c];
+      if(v === null || v === undefined) v = "";
+      html += "<td>"+escapeHTML(String(v))+"</td>";
+    });
+    html += "</tr>";
+  }
+  if(rows.length === 0){
+    html += "<tr><td colspan='"+cols.length+"' class='muted'>Sin filas.</td></tr>";
+  }
+  html += "</tbody></table></div>";
+  return html;
+}
+
+function getSelectedValues(sel){
+  return Array.from(sel.selectedOptions || []).map(o => o.value);
+}
+
+/* ======================= Detección numérica ======================= */
+function isNumericColumn(data, col){
+  if(!data || !data.rows) return false;
+  let nonNull = 0;
+  let numeric = 0;
+  const rows = data.rows;
+  const maxCheck = Math.min(200, rows.length);
+  for(let i=0;i<maxCheck;i++){
+    let v = rows[i][col];
+    if(v === null || v === undefined || v === "") continue;
+    nonNull++;
+    const x = Number(v);
+    if(!isNaN(x)) numeric++;
+  }
+  if(nonNull === 0) return false;
+  return (numeric / nonNull) >= 0.6;
+}
+
+function numericColumns(data){
+  if(!data) return [];
+  return (data.columns || []).filter(c => isNumericColumn(data,c));
+}
+
+/* ======================= Dedupe de columnas ======================= */
+function dedupeColumns(cols){
+  const seen = {};
+  const newCols = [];
+  const renamed = [];
+  cols.forEach(c => {
+    const s = String(c).trim();
+    if(!seen[s]){
+      seen[s] = 1;
+      newCols.push(s);
+    }else{
+      seen[s]++;
+      const newName = s + "_" + seen[s];
+      newCols.push(newName);
+      renamed.push({from:s, to:newName});
+    }
+  });
+  return {newCols, renamed};
+}
+
+/* ======================= CSV → carga ======================= */
+document.getElementById("file-input").addEventListener("change", function(ev){
+  const file = ev.target.files[0];
+  if(!file){
+    dfOriginal = dfWork = null;
+    document.getElementById("preview-table").innerHTML = "<div class='muted'>Sin archivo.</div>";
+    document.getElementById("dataset-pill").textContent = "Sin archivo";
+    return;
+  }
+  baseFileName = sanitizeFilename(file.name.replace(/\.csv$/i,"") || "archivo");
+  Papa.parse(file,{
+    header:true,
+    skipEmptyLines:"greedy",
+    dynamicTyping:false,
+    complete:function(results){
+      if(!results.data || !results.data.length){
+        alert("No se pudo leer el CSV (sin filas).");
+        return;
+      }
+      let cols = results.meta.fields || [];
+      const rowsRaw = results.data;
+
+      // Dedupe columnas
+      const {newCols, renamed} = dedupeColumns(cols);
+      cols = newCols;
+
+      // Normalizar filas
+      const rows = rowsRaw.map(r => {
+        const obj = {};
+        cols.forEach(c => { obj[c] = (r[c] !== undefined ? r[c] : ""); });
+        return obj;
+      });
+
+      dfOriginal = {columns:cols, rows:rows};
+      dfWork = deepCopy(dfOriginal);
+
+      // UI: info rápida
+      const pill = document.getElementById("dataset-pill");
+      pill.innerHTML = "📄 " + escapeHTML(file.name) +
+        " · Filas: " + rows.length + " · Columnas: " + cols.length;
+
+      const ddInfo = document.getElementById("dedupe-info");
+      if(renamed.length){
+        let msg = "⚠️ Columnas duplicadas renombradas:<br>";
+        renamed.forEach(r => {
+          msg += "• <code>"+escapeHTML(r.from)+"</code> → <code>"+escapeHTML(r.to)+"</code><br>";
+        });
+        ddInfo.innerHTML = msg;
+      }else{
+        ddInfo.innerHTML = "";
+      }
+
+      // Vista rápida
+      document.getElementById("preview-table").innerHTML = renderTable(dfWork,10);
+
+      // Refrescar todos los controles
+      refreshAllControls();
+      updateChart();
+      updateStats();
+      document.getElementById("final-info").innerHTML =
+        "df_work actual · Filas: <b>"+dfWork.rows.length+"</b> | Columnas: <b>"+dfWork.columns.length+"</b>";
+    },
+    error:function(err){
+      alert("Error al leer el CSV: " + err);
+    }
+  });
+});
+
+/* ======================= Refrescar controles ======================= */
+function refreshAllControls(){
+  if(!dfWork || !dfWork.columns || !dfWork.columns.length) return;
+  const cols = dfWork.columns;
+
+  // 1) Chart
+  const selX = document.getElementById("chart-x");
+  const selY = document.getElementById("chart-y");
+  selX.innerHTML = "";
+  selY.innerHTML = "";
+  cols.forEach(c => {
+    const opt1 = document.createElement("option");
+    opt1.value = c; opt1.textContent = c;
+    selX.appendChild(opt1);
+    const opt2 = document.createElement("option");
+    opt2.value = c; opt2.textContent = c;
+    selY.appendChild(opt2);
+  });
+  // Defaults
+  selX.value = cols[0];
+  const nums = numericColumns(dfWork);
+  const defaultYs = nums.length ? nums.slice(0,3) : cols.slice(0,1);
+  Array.from(selY.options).forEach(o => {
+    o.selected = defaultYs.includes(o.value);
+  });
+
+  // 2) Stats
+  const selStats = document.getElementById("stats-column");
+  selStats.innerHTML = "";
+  cols.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c; opt.textContent = c;
+    selStats.appendChild(opt);
+  });
+  selStats.value = cols[0];
+
+  // 3) Stack
+  const stackId = document.getElementById("stack-idvars");
+  const stackVal = document.getElementById("stack-valuevars");
+  stackId.innerHTML = "";
+  stackVal.innerHTML = "";
+  cols.forEach(c => {
+    const o1 = document.createElement("option");
+    o1.value = c; o1.textContent = c;
+    stackId.appendChild(o1);
+    const o2 = document.createElement("option");
+    o2.value = c; o2.textContent = c;
+    stackVal.appendChild(o2);
+  });
+
+  // 4) Split
+  const splitBase = document.getElementById("split-base");
+  const splitShow = document.getElementById("split-show");
+  splitBase.innerHTML = "";
+  splitShow.innerHTML = "";
+  cols.forEach(c => {
+    const op1 = document.createElement("option");
+    op1.value = c; op1.textContent = c;
+    splitBase.appendChild(op1);
+
+    const op2 = document.createElement("option");
+    op2.value = c; op2.textContent = c;
+    splitShow.appendChild(op2);
+  });
+  // Añadir opción "(ninguna)" al splitShow
+  const optNone = document.createElement("option");
+  optNone.value = "(ninguna)";
+  optNone.textContent = "(ninguna)";
+  splitShow.insertBefore(optNone, splitShow.firstChild);
+  splitBase.value = cols[0];
+  splitShow.value = "(ninguna)";
+}
+
+/* ======================= Gráfico (Chart.js) ======================= */
+function updateChart(){
+  const canvas = document.getElementById("chart-canvas");
+  const msg = document.getElementById("chart-msg");
+
+  if(!dfWork || !dfWork.columns || !dfWork.columns.length){
+    msg.textContent = "Carga un CSV para ver el gráfico.";
+    if(currentChart) { currentChart.destroy(); currentChart = null; }
+    return;
   }
 
-  function dfToHtmlPreview(df, maxRows=10){
-    if (!df || df.length===0) return "<em>(df vacío)</em>";
-    const cols = Object.keys(df[0]);
-    let html = "<table><thead><tr>";
-    for (let c of cols){
-      html += "<th>"+c+"</th>";
-    }
-    html += "</tr></thead><tbody>";
-    for (let i=0; i<Math.min(df.length,maxRows); i++){
-      const row = df[i];
-      html += "<tr>";
-      for (let c of cols){
-        let v = row[c];
-        if (v===null || v===undefined) v="";
-        html += "<td>"+String(v)+"</td>";
+  const xCol = document.getElementById("chart-x").value;
+  const yCols = getSelectedValues(document.getElementById("chart-y"));
+  const type  = document.getElementById("chart-type").value;
+
+  if(!xCol || !yCols.length){
+    msg.textContent = "Selecciona X y al menos una Y.";
+    if(currentChart) { currentChart.destroy(); currentChart = null; }
+    return;
+  }
+
+  const rows = dfWork.rows;
+  const labels = rows.map(r => String(r[xCol] ?? ""));
+
+  const datasets = [];
+  const palette = [
+    "#22d3ee","#a855f7","#f97316","#ec4899","#22c55e",
+    "#eab308","#0ea5e9","#facc15","#f97316","#38bdf8",
+    "#4ade80","#fda4af","#c4b5fd","#67e8f9"
+  ];
+
+  yCols.forEach((col, idx) => {
+    const data = rows.map(r => {
+      const v = r[col];
+      const x = Number(v);
+      return isNaN(x) ? null : x;
+    });
+    datasets.push({
+      label: col,
+      data: data,
+      borderColor: palette[idx % palette.length],
+      backgroundColor: palette[idx % palette.length],
+      tension: 0.2,
+      pointRadius: 2.5,
+      pointHitRadius: 6,
+      borderWidth: 2
+    });
+  });
+
+  const ctx = canvas.getContext("2d");
+  if(currentChart) currentChart.destroy();
+
+  currentChart = new Chart(ctx,{
+    type: type === "bar" ? "bar" : "line",
+    data:{
+      labels: labels,
+      datasets: datasets
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:"index", intersect:false},
+      plugins:{
+        legend:{
+          labels:{color:"#e5e7eb", font:{size:11}}
+        },
+        tooltip:{
+          callbacks:{
+            label:function(context){
+              const v = context.parsed.y;
+              if(v === null || v === undefined || isNaN(v)) return context.dataset.label+": (NaN)";
+              return context.dataset.label+": "+v;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{
+            color:"#94a3b8",
+            maxRotation:60,
+            minRotation:0
+          },
+          grid:{color:"rgba(148,163,184,0.15)"},
+          title:{display:true, text:xCol, color:"#e5e7eb", font:{size:12}}
+        },
+        y:{
+          ticks:{color:"#94a3b8"},
+          grid:{color:"rgba(148,163,184,0.15)"},
+          title:{display:true, text:"Valores", color:"#e5e7eb", font:{size:12}}
+        }
       }
-      html += "</tr>";
     }
-    if (df.length>maxRows){
-      html += `<tr><td colspan="${cols.length}">… (${df.length-maxRows} filas más)</td></tr>`;
+  });
+
+  msg.textContent = "Gráfico generado a partir de df_work (todas las filas actuales).";
+}
+
+document.getElementById("chart-x").addEventListener("change", updateChart);
+document.getElementById("chart-y").addEventListener("change", updateChart);
+document.getElementById("chart-type").addEventListener("change", updateChart);
+
+/* ======================= Estadística de una columna (modo JMP extendido) ======================= */
+function computeStats(data, col){
+  const rows = data.rows || [];
+  const total = rows.length;
+  let missing = 0;
+  const values = [];
+
+  for(const r of rows){
+    let v = r[col];
+    if(v === null || v === undefined || v === ""){
+      missing++;
+    }else{
+      values.push(v);
+    }
+  }
+
+  // Cálculo de únicos (solo no-nulos)
+  const uniqueValues = new Set(values.map(v => String(v))).size;
+
+  // Intentar numérica
+  const nums = [];
+  let numericCount = 0;
+  for(const v of values){
+    const x = Number(v);
+    if(!isNaN(x)){
+      numericCount++;
+      nums.push(x);
+    }
+  }
+  const numericRatio = values.length ? numericCount/values.length : 0;
+
+  if(numericRatio >= 0.6 && nums.length){
+    // ======= NUMÉRICA (modo JMP-like) =======
+    nums.sort((a,b)=>a-b);
+    const n = nums.length;
+
+    // Suma
+    const sum = nums.reduce((a,b)=>a+b,0);
+
+    // Media
+    const mean = sum / n;
+
+    // Varianza y std (muestral)
+    let varAcc = 0;
+    for(const x of nums){
+      varAcc += (x-mean)*(x-mean);
+    }
+    const variance = n>1 ? varAcc/(n-1) : 0;
+    const std = Math.sqrt(variance);
+
+    // Error estándar
+    const se = (n>1 && std>0) ? std/Math.sqrt(n) : null;
+
+    // IC 95% Mean (aprox.)
+    const t = 1.96;
+    const ciLow  = (se !== null) ? mean - t*se : null;
+    const ciHigh = (se !== null) ? mean + t*se : null;
+
+    // Mín/Máx/Rango
+    const min = nums[0];
+    const max = nums[n-1];
+    const range = max - min;
+
+    // Percentiles
+    const p01 = percentile(nums, 1);
+    const p05 = percentile(nums, 5);
+    const p10 = percentile(nums,10);
+    const p25 = percentile(nums,25);
+    const p50 = percentile(nums,50);
+    const p75 = percentile(nums,75);
+    const p90 = percentile(nums,90);
+    const p95 = percentile(nums,95);
+    const p99 = percentile(nums,99);
+    const iqr = p75 - p25;
+
+    // Coeficiente de variación
+    const cv = (mean !== 0) ? (std/mean)*100 : null;
+
+    // Skewness & Kurtosis
+    let m3 = 0, m4 = 0;
+    for(const x of nums){
+      const z = x - mean;
+      m3 += z*z*z;
+      m4 += z*z*z*z;
+    }
+    const denom3 = (n>1) ? ((n-1) * Math.pow(std,3)) : null;
+    const denom4 = (n>1) ? ((n-1) * Math.pow(std,4)) : null;
+    const skewness = (denom3 && denom3 !== 0) ? (m3/denom3) : null;
+    const kurtRaw  = (denom4 && denom4 !== 0) ? (m4/denom4) : null;
+    const kurtosis = (kurtRaw !== null) ? (kurtRaw - 3) : null;
+
+    return {
+      type:"numeric",
+      total,
+      missing,
+      unique:uniqueValues,
+      nValid:n,
+      sum,
+      mean,
+      variance,
+      std,
+      se,
+      ciLow,
+      ciHigh,
+      min,
+      max,
+      range,
+      p01,p05,p10,p25,p50,p75,p90,p95,p99,
+      iqr,
+      cv,
+      skewness,
+      kurtosis
+    };
+  }
+
+  // ======= CATEGÓRICA =======
+  const counts = {};
+  values.forEach(v => {
+    const s = String(v);
+    counts[s] = (counts[s] || 0) + 1;
+  });
+  let topValue = "";
+  let topFreq = 0;
+  Object.entries(counts).forEach(([k,v])=>{
+    if(v>topFreq){topFreq=v;topValue=k;}
+  });
+
+  // Ordenar categorías por frecuencia
+  const catArray = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+
+  return {
+    type:"categorical",
+    total,
+    missing,
+    unique:uniqueValues,
+    top:topValue,
+    freq:topFreq,
+    counts:counts,
+    catArray:catArray
+  };
+}
+
+function percentile(arr,p){
+  if(!arr.length) return null;
+  const pos = (p/100)*(arr.length-1);
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  if(arr[base+1] !== undefined){
+    return arr[base] + rest*(arr[base+1]-arr[base]);
+  }else{
+    return arr[base];
+  }
+}
+
+function fmtFloat(x, decimals=6){
+  if(x === null || x === undefined || isNaN(x)) return "";
+  const xf = Number(x);
+  if(!isFinite(xf)) return "";
+  if(Math.abs(xf) > 1e6 || (Math.abs(xf) < 1e-4 && xf !== 0)){
+    return xf.toExponential(decimals);
+  }
+  return xf.toFixed(decimals);
+}
+
+function updateStats(){
+  const sel = document.getElementById("stats-column");
+  const col = sel.value;
+  const cont = document.getElementById("stats-table");
+  if(!dfWork || !col){
+    cont.innerHTML = "<div class='muted'>Carga un CSV y elige una columna.</div>";
+    return;
+  }
+  const st = computeStats(dfWork,col);
+  let html = "<div class='small'><table>";
+
+  if(st.type === "numeric"){
+    const rows = [
+      ["Columna", col],
+      ["Tipo", "numérica"],
+      ["N (filas totales)", st.total],
+      ["Missing", st.missing],
+      ["Non-missing", st.total - st.missing],
+      ["Unique (no nulos)", st.unique],
+      ["N válidos numéricos", st.nValid],
+      ["Sum", fmtFloat(st.sum,6)],
+      ["Mean", fmtFloat(st.mean,6)],
+      ["Variance", fmtFloat(st.variance,6)],
+      ["Std Dev", fmtFloat(st.std,6)],
+      ["Std Error of Mean", fmtFloat(st.se,6)],
+      ["IC95% Mean (Low)", fmtFloat(st.ciLow,6)],
+      ["IC95% Mean (High)", fmtFloat(st.ciHigh,6)],
+      ["Coeff. of Variation (%)", fmtFloat(st.cv,4)],
+      ["Min", fmtFloat(st.min,6)],
+      ["Max", fmtFloat(st.max,6)],
+      ["Range", fmtFloat(st.range,6)],
+      ["P01", fmtFloat(st.p01,6)],
+      ["P05", fmtFloat(st.p05,6)],
+      ["P10", fmtFloat(st.p10,6)],
+      ["P25 (Q1)", fmtFloat(st.p25,6)],
+      ["P50 (Mediana)", fmtFloat(st.p50,6)],
+      ["P75 (Q3)", fmtFloat(st.p75,6)],
+      ["P90", fmtFloat(st.p90,6)],
+      ["P95", fmtFloat(st.p95,6)],
+      ["P99", fmtFloat(st.p99,6)],
+      ["IQR (Q3 - Q1)", fmtFloat(st.iqr,6)],
+      ["Skewness", fmtFloat(st.skewness,6)],
+      ["Kurtosis (exceso)", fmtFloat(st.kurtosis,6)]
+    ];
+    rows.forEach(([k,v])=>{
+      html += "<tr><td style='font-weight:600;background:#0f172a;'>"+escapeHTML(k)+"</td><td>"+escapeHTML(String(v))+"</td></tr>";
+    });
+  }else if(st.type === "categorical"){
+    const rows = [
+      ["Columna", col],
+      ["Tipo", "categórica"],
+      ["N (filas totales)", st.total],
+      ["Missing", st.missing],
+      ["Non-missing", st.total - st.missing],
+      ["Unique (no nulos)", st.unique],
+      ["Moda (Top categoría)", st.top],
+      ["Freq (Moda)", st.freq]
+    ];
+    rows.forEach(([k,v])=>{
+      html += "<tr><td style='font-weight:600;background:#0f172a;'>"+escapeHTML(k)+"</td><td>"+escapeHTML(String(v))+"</td></tr>";
+    });
+
+    // Tabla de frecuencias (Top 20)
+    html += "<tr><td colspan='2'>";
+    html += "<div style='margin-top:6px; font-weight:600;'>Tabla de frecuencias (Top 20 categorías):</div>";
+    html += "<table style='margin-top:4px; font-size:0.78rem; border-collapse:collapse; width:100%;'>";
+    html += "<thead><tr><th>Categoría</th><th>Frecuencia</th><th>%</th></tr></thead><tbody>";
+    const topCats = st.catArray.slice(0,20);
+    const totalNonMissing = st.total - st.missing || 1;
+    if(topCats.length === 0){
+      html += "<tr><td colspan='3' class='muted'>Sin categorías para mostrar.</td></tr>";
+    }else{
+      topCats.forEach(([val,freq])=>{
+        const pct = (freq/totalNonMissing)*100;
+        html += "<tr>";
+        html += "<td>"+escapeHTML(String(val))+"</td>";
+        html += "<td>"+escapeHTML(String(freq))+"</td>";
+        html += "<td>"+escapeHTML(fmtFloat(pct,2))+"%</td>";
+        html += "</tr>";
+      });
     }
     html += "</tbody></table>";
-    return html;
+    html += "</td></tr>";
+  }else{
+    html += "<tr><td colspan='2'>Sin información.</td></tr>";
   }
 
-  function refreshColumnSelects(){
-    const ids = ["statsCol","chartX","chartY","stackIndexCols","stackOrderCols","splitBaseCol","splitViewCol"];
-    const selects = ids.map(id => document.getElementById(id)).filter(el => el && el.tagName==="SELECT");
+  html += "</table></div>";
+  cont.innerHTML = html;
+}
 
-    selects.forEach(sel => {
-      while (sel.firstChild) sel.removeChild(sel.firstChild);
-    });
+document.getElementById("stats-column").addEventListener("change", updateStats);
 
-    if (!columns || columns.length===0) return;
-
-    selects.forEach(sel => {
-      columns.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c;
-        opt.textContent = c;
-        sel.appendChild(opt);
-      });
-    });
-
-    if (columns.length){
-      const statsCol = document.getElementById("statsCol");
-      if (statsCol) statsCol.value = columns[0];
-
-      const chartX = document.getElementById("chartX");
-      if (chartX) chartX.value = columns[0];
-
-      // Multi-select Y: por defecto selecciona 1–2 columnas
-      const chartY = document.getElementById("chartY");
-      if (chartY) {
-        Array.from(chartY.options).forEach(opt => opt.selected = false);
-        if (chartY.options.length > 0) chartY.options[0].selected = true;
-        if (chartY.options.length > 1) chartY.options[1].selected = true;
-      }
-
-      const splitBase = document.getElementById("splitBaseCol");
-      if (splitBase) splitBase.value = columns[0];
-
-      const splitView = document.getElementById("splitViewCol");
-      if (splitView && columns.length>1) splitView.value = columns[1];
-    }
-
-    const columnsList = document.getElementById("columnsList");
-    columnsList.textContent = columns.length
-      ? columns.join("  |  ")
-      : "(sin columnas)";
+/* ======================= STACK (apilar) ======================= */
+document.getElementById("stack-btn").addEventListener("click", function(){
+  if(!dfWork || !dfWork.columns || !dfWork.columns.length){
+    alert("Primero carga un CSV.");
+    return;
   }
+  const cols = dfWork.columns;
+  const idVars = getSelectedValues(document.getElementById("stack-idvars"));
+  let valueVars = getSelectedValues(document.getElementById("stack-valuevars"));
+  if(!valueVars.length){
+    valueVars = cols.filter(c => !idVars.includes(c));
+  }
+  if(!valueVars.length){
+    document.getElementById("stack-result").innerHTML =
+      "<div class='muted'>❌ No hay columnas para apilar. Selecciona <b>value_vars</b> o deja vacío para usar todas menos id_vars.</div>";
+    return;
+  }
+  const varName = document.getElementById("stack-varname").value.trim() || "variable";
+  const valueName = document.getElementById("stack-valuename").value.trim() || "value";
+  const dropNa = document.getElementById("stack-dropna").checked;
 
-  function handleLoadCsv(){
-    const input = document.getElementById("csvInput");
-    const file = input.files && input.files[0];
-    if (!file){
-      showMessage("error","Debes seleccionar un archivo .csv.");
-      return;
-    }
+  const newCols = [...idVars, varName, valueName];
+  const newRows = [];
 
-    Papa.parse(file, {
-      header:true,
-      dynamicTyping:true,
-      skipEmptyLines:true,
-      complete:function(results){
-        dfWork = results.data;
-        originalDf = JSON.parse(JSON.stringify(dfWork));
-        if (!dfWork.length){
-          showMessage("error","El CSV está vacío o no se pudieron leer filas.");
+  for(const row of dfWork.rows){
+    valueVars.forEach(vcol => {
+      const nr = {};
+      idVars.forEach(id => { nr[id] = row[id]; });
+      nr[varName] = vcol;
+      nr[valueName] = row[vcol];
+      if(dropNa){
+        if(nr[valueName] === null || nr[valueName] === undefined || nr[valueName] === ""){
           return;
         }
-        columns = Object.keys(dfWork[0]);
-        refreshColumnSelects();
-
-        document.getElementById("loadStatus").innerHTML =
-          `<div class="alert alert-ok">✅ Cargadas <b>${dfWork.length}</b> filas, <b>${columns.length}</b> columnas.</div>`;
-
-        renderDfPreview();
-      },
-      error:function(err){
-        showMessage("error","Error al parsear CSV: "+err.message);
       }
+      newRows.push(nr);
     });
   }
 
-  function renderStats(){
-    const colName = document.getElementById("statsCol").value;
-    const box = document.getElementById("statsResult");
-    box.textContent = "";
+  dfWork = {columns:newCols, rows:newRows};
 
-    if (!colName || !columns.includes(colName)){
-      box.textContent = "Selecciona una columna válida.";
-      return;
-    }
+  document.getElementById("stack-result").innerHTML =
+    "<div class='muted'>✅ STACK generado. Dimensiones: <b>"+dfWork.rows.length+"</b> filas × <b>"+dfWork.columns.length+"</b> columnas.<br>Vista — primeras 10 filas:</div>" +
+    renderTable(dfWork,10);
 
-    const vals = dfWork.map(r => r[colName]).filter(v => v!==null && v!==undefined && v!=="");
-    if (!vals.length){
-      box.textContent = "Columna sin datos.";
-      return;
-    }
+  document.getElementById("preview-table").innerHTML = renderTable(dfWork,10);
+  document.getElementById("final-info").innerHTML =
+    "df_work actual · Filas: <b>"+dfWork.rows.length+"</b> | Columnas: <b>"+dfWork.columns.length+"</b>";
 
-    const nums = vals.map(v => typeof v==="number" ? v : Number(v)).filter(v => !isNaN(v));
-    let txt = `Columna: ${colName}\nFilas no vacías: ${vals.length}\n`;
+  refreshAllControls();
+  updateChart();
+  updateStats();
+});
 
-    if (nums.length){
-      const n = nums.length;
-      const sum = nums.reduce((a,b)=>a+b,0);
-      const mean = sum/n;
-      const min = Math.min(...nums);
-      const max = Math.max(...nums);
-      txt += `Tipo detectado: numérico\n`;
-      txt += `Valores numéricos: ${nums.length}\nMedia: ${mean}\nMin: ${min}\nMax: ${max}\n`;
-    } else {
-      const counts = {};
-      vals.forEach(v => {
-        const k = String(v);
-        counts[k] = (counts[k]||0)+1;
-      });
-      txt += "Tipo detectado: categórico / texto\n";
-      txt += "Top categorías:\n";
-      const ordered = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
-      ordered.forEach(([k,c])=>{
-        txt += `  - ${k}: ${c}\n`;
-      });
-    }
-
-    box.textContent = txt;
+/* ======================= SPLIT ======================= */
+document.getElementById("split-btn").addEventListener("click", function(){
+  if(!dfWork || !dfWork.columns || !dfWork.columns.length){
+    alert("Primero carga un CSV.");
+    return;
   }
-
-  function renderChart(){
-    const xCol = document.getElementById("chartX").value;
-    const chartYSelect = document.getElementById("chartY");
-    const type = document.getElementById("chartType").value;
-
-    if (!xCol || !columns.includes(xCol)){
-      showMessage("error","Selecciona una columna X válida.");
-      return;
-    }
-
-    if (!chartYSelect){
-      showMessage("error","No se encontró el selector de columnas Y.");
-      return;
-    }
-
-    const yCols = Array.from(chartYSelect.selectedOptions).map(opt => opt.value);
-    if (!yCols.length){
-      showMessage("error","Selecciona al menos una columna Y.");
-      return;
-    }
-
-    // Labels X
-    const labels = dfWork.map(r => {
-      const v = r[xCol];
-      return (v===undefined || v===null) ? "" : String(v);
-    });
-
-    // Datasets Y múltiples
-    const datasets = yCols.map((yCol) => {
-      if (!columns.includes(yCol)) return null;
-      const yValues = dfWork.map(r => {
-        const v = r[yCol];
-        return (typeof v==="number") ? v : Number(v);
-      }).map(v => isNaN(v) ? 0 : v);
-
-      return {
-        label: yCol,
-        data: yValues,
-        borderWidth:1.5,
-        tension:0.2,
-        fill:false
-        // Chart.js asigna colores automáticamente
-      };
-    }).filter(ds => ds!==null);
-
-    if (!datasets.length){
-      showMessage("error","Las columnas Y seleccionadas no son válidas.");
-      return;
-    }
-
-    const ctx = document.getElementById("chartCanvas").getContext("2d");
-
-    if (chartInstance){
-      chartInstance.destroy();
-    }
-
-    chartInstance = new Chart(ctx, {
-      type: type,
-      data: {
-        labels: labels,
-        datasets: datasets
-      },
-      options: {
-        responsive:true,
-        maintainAspectRatio:false,
-        scales:{
-          x:{ticks:{color:"#e5e7eb"},grid:{color:"rgba(148,163,184,0.15)"}},
-          y:{ticks:{color:"#e5e7eb"},grid:{color:"rgba(148,163,184,0.15)"}}
-        },
-        plugins:{
-          legend:{labels:{color:"#e5e7eb"}},
-          tooltip:{enabled:true}
-        }
-      }
-    });
+  const colBase = document.getElementById("split-base").value;
+  const colShow = document.getElementById("split-show").value;
+  if(!colBase){
+    document.getElementById("split-status").innerHTML =
+      "<div class='muted'>❌ Selecciona la columna base.</div>";
+    return;
   }
+  // Contar grupos
+  const groups = {};
+  dfWork.rows.forEach(r => {
+    const key = String(r[colBase] ?? "NA");
+    groups[key] = true;
+  });
+  const nGroups = Object.keys(groups).length;
+  document.getElementById("split-status").innerHTML =
+    "ℹ️ Detectados <b>"+nGroups+"</b> grupos por <code>"+escapeHTML(colBase)+"</code>. (No se filtra, solo se informa)";
 
-  function handleStack(){
-    if (!dfWork || !dfWork.length){
-      showMessage("error","No hay df_work cargado para hacer stack.");
-      return;
-    }
-
-    const idxSel = document.getElementById("stackIndexCols");
-    const orderSel = document.getElementById("stackOrderCols");
-    const stackStatus = document.getElementById("stackStatus");
-
-    let log = "";
-
-    // Columnas índice elegidas en el pop up (multi-select)
-    let idxCols = [];
-    if (idxSel) {
-      idxCols = Array.from(idxSel.selectedOptions).map(o => o.value).filter(c => columns.includes(c));
-    }
-
-    if (idxCols.length){
-      log += `Columnas índice válidas: ${idxCols.join(", ")}\n`;
-    } else {
-      log += `Sin columnas índice válidas (se ignora índice).\n`;
-    }
-
-    // Crear df2 con columnas idx_1, idx_2, ...
-    const df2 = dfWork.map(row => {
-      const newRow = {...row};
-      idxCols.forEach((c,i)=>{
-        newRow[`idx_${i+1}`] = row[c];
-      });
-      return newRow;
-    });
-
-    // Nuevo orden de columnas a partir del pop up (multi-select)
-    let newOrder;
-    if (orderSel) {
-      const desired = Array.from(orderSel.selectedOptions).map(o => o.value).filter(Boolean);
-      if (desired.length){
-        const validDesired = desired.filter(c => Object.keys(df2[0]).includes(c));
-        const extras = Object.keys(df2[0]).filter(c => !validDesired.includes(c));
-        newOrder = validDesired.concat(extras);
-        log += `Orden solicitado (filtrado a columnas válidas): ${validDesired.join(", ")}\n`;
-        if (extras.length){
-          log += `Columnas agregadas al final por no estar en el orden seleccionado: ${extras.join(", ")}\n`;
-        }
-      } else {
-        newOrder = Object.keys(df2[0]);
-        log += "No se seleccionó un nuevo orden de columnas; se mantiene el orden actual.\n";
-      }
-    } else {
-      newOrder = Object.keys(df2[0]);
-      log += "No se encontró el selector de orden; se mantiene el orden actual.\n";
-    }
-
-    dfWork = df2.map(row => {
-      const ordered = {};
-      newOrder.forEach(c => {
-        ordered[c] = row[c];
-      });
-      return ordered;
-    });
-    columns = newOrder;
-
-    stackStatus.innerHTML =
-      `<div class="alert alert-ok">✅ <b>STACK generado.</b> Dimensiones: <b>${dfWork.length} filas</b> × <b>${columns.length} columnas</b></div>` +
-      `<div style="margin-top:6px;">Primeras 10 filas del CSV cambiado:</div>` +
-      `<div style="margin-top:4px; max-height:260px; overflow:auto;">${dfToHtmlPreview(dfWork,10)}</div>` +
-      `\n\n${log}`;
-
-    refreshColumnSelects();
+  let dataView;
+  if(colShow && colShow !== "(ninguna)" && dfWork.columns.includes(colShow)){
+    dataView = {
+      columns:[colBase,colShow],
+      rows:dfWork.rows.map(r=>{
+        const o = {};
+        o[colBase] = r[colBase];
+        o[colShow] = r[colShow];
+        return o;
+      })
+    };
+  }else{
+    dataView = dfWork;
   }
+  document.getElementById("split-result").innerHTML =
+    "<div class='muted'>Primeras 10 filas de la tabla completa (vista seleccionada):</div>" +
+    renderTable(dataView,10);
+});
 
-  /* ===================== SPLIT ===================== */
-  function doSplit() {
-    if (!dfWork || dfWork.length === 0 || columns.length === 0) return;
-
-    const baseCol = document.getElementById("splitBaseCol").value;
-    const viewCol = document.getElementById("splitViewCol").value || null;
-    const status  = document.getElementById("splitStatus");
-    const preview = document.getElementById("splitPreview");
-
-    // Validación columna base
-    if (!baseCol || !columns.includes(baseCol)) {
-      status.innerHTML = `<div class="alert alert-error">❌ La columna base '${baseCol}' no existe en df_work.</div>`;
-      preview.innerHTML = "";
-      return;
-    }
-
-    // --- Construir mapa de grupos: valor → conteo ---
-    const groupsMap = {};
-    for (let row of dfWork) {
-      const raw = row[baseCol];
-      const key = (raw === undefined || raw === null) ? "" : String(raw);
-      if (!groupsMap[key]) {
-        groupsMap[key] = {
-          label: key === "" ? "(vacío)" : key,
-          count: 0
-        };
-      }
-      groupsMap[key].count += 1;
-    }
-
-    const entries = Object.entries(groupsMap);
-    const nGroups = entries.length;
-
-    // Función para escapar texto en HTML
-    const esc = (s) => String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/"/g, "&quot;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-
-    // --- Render de píldoras de grupos ---
-    let pillsHtml = "";
-    for (const [key, g] of entries) {
-      const safeKey   = esc(key);
-      const safeLabel = esc(g.label);
-      pillsHtml += `
-        <button class="pill" data-split-value="${safeKey}">
-          ${safeLabel} <span style="opacity:.75;">(${g.count})</span>
-        </button>
-      `;
-    }
-
-    status.innerHTML =
-      `<div class="alert alert-info">
-         ℹ️ Detectados <b>${nGroups}</b> grupos por '<code>${esc(baseCol)}</code>'.
-       </div>` +
-      (nGroups > 0
-        ? `<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:4px;">
-             ${pillsHtml}
-           </div>
-           <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">
-             Haz clic en un grupo para filtrar <code>df_work</code> a ese valor.
-             Luego puedes usar <b>Exportar CSV</b> o seguir trabajando con el subset.
-             Usa <b>Reset Base</b> para volver al CSV original.
-           </div>`
-        : ""
-      );
-
-    // --- Vista previa general (dfWork actual, antes de filtrar) ---
-    let colsToShow;
-    if (viewCol && columns.includes(viewCol)) {
-      colsToShow = [baseCol, viewCol];
-    } else {
-      colsToShow = columns.slice();
-    }
-
-    const dataPreview = dfWork.map(r => {
-      const obj = {};
-      colsToShow.forEach(c => { obj[c] = r[c]; });
-      return obj;
-    });
-
-    preview.innerHTML =
-      `<div style="margin-top:6px;">Primeras 10 filas — tabla completa (antes de filtrar por grupo):</div>` +
-      `<div style="margin-top:4px; max-height:260px; overflow:auto;">${dfToHtmlPreview(dataPreview, 10)}</div>`;
-
-    // --- Listeners para las píldoras (filtrar por grupo) ---
-    status.querySelectorAll("button.pill[data-split-value]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const valKey = btn.getAttribute("data-split-value");
-
-        const filtered = dfWork.filter(row => {
-          const raw = row[baseCol];
-          const k = (raw === undefined || raw === null) ? "" : String(raw);
-          return k === valKey;
-        });
-
-        if (!filtered.length) {
-          showMessage("error", `No se encontraron filas para el grupo seleccionado.`);
-          return;
-        }
-
-        // Actualizar dfWork y columnas con el grupo elegido
-        dfWork   = filtered;
-        columns  = dfWork.length ? Object.keys(dfWork[0]) : [];
-
-        showMessage(
-          "info",
-          `✅ df_work filtrado por <code>${esc(baseCol)}</code> = <code>${esc(valKey || "(vacío)")}</code>. Filas: <b>${dfWork.length}</b>.`
-        );
-
-        // Refrescar todos los selects / tarjetas
-        refreshColumnSelects();
-
-        // Vista previa del grupo seleccionado
-        let colsToShow2;
-        if (viewCol && columns.includes(viewCol)) {
-          colsToShow2 = [baseCol, viewCol];
-        } else {
-          colsToShow2 = columns.slice();
-        }
-        const dataPreviewFiltered = dfWork.map(r => {
-          const obj = {};
-          colsToShow2.forEach(c => { obj[c] = r[c]; });
-          return obj;
-        });
-
-        preview.innerHTML =
-          `<div style="margin-top:6px;">Primeras 10 filas del grupo seleccionado:</div>` +
-          `<div style="margin-top:4px; max-height:260px; overflow:auto;">${dfToHtmlPreview(dataPreviewFiltered, 10)}</div>`;
-      });
-    });
+/* ======================= EXPORTAR CSV ======================= */
+document.getElementById("export-btn").addEventListener("click", function(){
+  if(!dfWork || !dfWork.columns || !dfWork.columns.length){
+    alert("Nada que exportar (df_work vacío).");
+    return;
   }
-  /* ===================== EXPORT / RESET ===================== */
+  let fname = document.getElementById("export-name").value.trim();
+  if(!fname) fname = baseFileName + "_final.csv";
+  if(!/\.csv$/i.test(fname)) fname += ".csv";
+  fname = sanitizeFilename(fname);
 
-  function renderDfPreview() {
-    const dfPreview = document.getElementById("dfPreview");
-    if (!dfWork || dfWork.length===0) {
-      dfPreview.innerHTML = "<em>(df_work vacío)</em>";
-      document.getElementById("exportStatus").textContent = "df_work actual: (vacío)";
-      return;
+  const csv = dfToCSV(dfWork);
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  document.getElementById("final-info").innerHTML =
+    "✅ CSV exportado como <code>"+escapeHTML(fname)+"</code>.";
+});
+
+function dfToCSV(data){
+  const cols = data.columns || [];
+  const rows = data.rows || [];
+  const esc = v => {
+    if(v === null || v === undefined) v = "";
+    v = String(v);
+    if(/[";,\n]/.test(v)){
+      v = '"' + v.replace(/"/g,'""') + '"';
     }
-    dfPreview.innerHTML = dfToHtmlPreview(dfWork, 15);
-    document.getElementById("exportStatus").textContent =
-      `df_work actual: ${dfWork.length} filas × ${columns.length} columnas.`;
+    return v;
+  };
+  let out = cols.map(esc).join(",") + "\n";
+  rows.forEach(r => {
+    const line = cols.map(c => esc(r[c])).join(",");
+    out += line + "\n";
+  });
+  return out;
+}
+
+/* ======================= RESET (volver al original) ======================= */
+document.getElementById("reset-btn").addEventListener("click", function(){
+  if(!dfOriginal){
+    alert("No hay CSV original cargado.");
+    return;
   }
-
-  function handleExportCsv(){
-    if (!dfWork || !dfWork.length){
-      showMessage("error","No hay df_work para exportar.");
-      return;
-    }
-    const header = Object.keys(dfWork[0]);
-    const rows = dfWork.map(r => header.map(c => r[c]));
-    const csvLines = [];
-    csvLines.push(header.map(c => `"${String(c).replace(/"/g,'""')}"`).join(","));
-    rows.forEach(row => {
-      const line = row.map(v => {
-        if (v===null || v===undefined) return "";
-        const s = String(v).replace(/"/g,'""');
-        return `"${s}"`;
-      }).join(",");
-      csvLines.push(line);
-    });
-    const blob = new Blob([csvLines.join("\n")], {type: "text/csv;charset=utf-8;"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "df_work.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    showMessage("ok","Archivo <b>df_work.csv</b> descargado.");
-  }
-
-  function handleReset(){
-    dfWork = [];
-    columns = [];
-    originalDf = [];
-    const ids = ["statsCol","chartX","chartY","stackIndexCols","stackOrderCols","splitBaseCol","splitViewCol"];
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      if (el && el.tagName==="SELECT"){
-        while (el.firstChild) el.removeChild(el.firstChild);
-      }
-    });
-    document.getElementById("columnsList").textContent = "(vacío)";
-    document.getElementById("statsResult").textContent = "";
-    document.getElementById("stackStatus").textContent = "";
-    document.getElementById("splitStatus").textContent = "";
-    document.getElementById("splitPreview").textContent = "";
-    if (chartInstance){
-      chartInstance.destroy();
-      chartInstance = null;
-    }
-    document.getElementById("chartCanvas").getContext("2d").clearRect(0,0,3000,3000);
-    renderDfPreview();
-    document.getElementById("loadStatus").textContent = "Aún no se ha cargado ningún CSV.";
-    document.getElementById("exportStatus").textContent = "df_work actual: (vacío)";
-  }
-
-  // Eventos
-  document.getElementById("btnLoadCsv").addEventListener("click", handleLoadCsv);
-  document.getElementById("btnStats").addEventListener("click", renderStats);
-  document.getElementById("btnChart").addEventListener("click", renderChart);
-  document.getElementById("btnStack").addEventListener("click", handleStack);
-  document.getElementById("btnSplit").addEventListener("click", doSplit);
-  document.getElementById("btnExportCsv").addEventListener("click", handleExportCsv);
-  document.getElementById("btnReset").addEventListener("click", handleReset);
+  dfWork = deepCopy(dfOriginal);
+  document.getElementById("preview-table").innerHTML = renderTable(dfWork,10);
+  refreshAllControls();
+  updateChart();
+  updateStats();
+  document.getElementById("final-info").innerHTML =
+    "🔁 df_work ha sido restablecido al CSV original.";
+});
 </script>
 </body>
 </html>
